@@ -1,7 +1,16 @@
 import random
 from engine import Value
 
-class Neuron:
+class Module: # parent class to mirror nn.module class in PyTorch
+    def zero_grad(self):
+        for p in self.parameters:
+            p.grad = 0
+    
+    def parameters(self):
+        return []
+
+
+class Neuron(Module):
     def __init__(self, n_in, lin=False):
         self.w = [Value(random.uniform(-1, 1)) for _ in range(n_in)]
         self.b = Value(random.uniform(-1, 1))
@@ -14,7 +23,7 @@ class Neuron:
     def parameters(self):
         return self.w + [self.b]
     
-class Layer:
+class Layer(Module):
     def __init__(self, n_in, n_out):
         self.neurons = [Neuron(n_in) for _ in range(n_out)]
 
@@ -23,15 +32,10 @@ class Layer:
         return out[0] if len(out)==1 else out
     
     def parameters(self):
-        #params = []
-        #for neuron in self.neurons:
-        #    ps = neuron.parameters
-        #    params.extend(ps)
-        #return params
         return [p for neuron in self.neurons for p in neuron.parameters()]
 
 
-class MLP: # Multi Layer Perceptron
+class MLP(Module): # Multi Layer Perceptron
     def __init__(self, n_in, n_outs): # take number of inputs and list of n_outs
         sz = [n_in] + n_outs
         self.layers = [Layer(sz[i], sz[i+1]) for i in range(len(n_outs))]
