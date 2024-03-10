@@ -15,8 +15,7 @@ for k in range(10):
     loss = sum([(ygt - yout)**2 for ygt, yout in zip(ys, ypred)]) # mean squared error loss
 
     # backward pass
-    for p in n.parameters():
-        p.grad = 0.0
+    n.zero_grad()
     loss.backward()
 
     # update w grad descent optimisation
