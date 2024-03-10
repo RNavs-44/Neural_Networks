@@ -39,19 +39,25 @@ count = 1
 P = (N+count).float()
 P /= P.sum(1, keepdim=True)
 
-# generate names
+# draw samples 
 #for i in range(20):
 #    out = []
 #    ix = 0
 #    while True:
+
 #        p = P[ix]
-#        # draws samples from probability distribution
+#        or 
+#        xenc = F.one_hot(xs, num_classes=27).float() 
+#        logits = xenc @ w
+#        counts = logits.exp()
+#        probs = counts / counts.sum(1, keepdims=True) 
+
+         # draws samples from probability distribution
 #        ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
 #        out.append(itos[ix])
 #        if ix == 0:
 #            break
 #    print(''.join(out))
-
 # creating loss function using maximum likelihood estimation
 # closer probability is to 1 the closer log likelihood is to 0
 #log_likelihood = 0.0
@@ -86,8 +92,6 @@ for w in words:
 xs = torch.tensor(xs)
 ys = torch.tensor(ys)
 num = xs.nelement()
-print(xs)
-print(ys)
 print('number of examples: ', num)
 
 # randomly initialise 27 neurons' weights, each neuron receives 27 inputs
@@ -97,7 +101,6 @@ w = torch.randn((27, 27), generator=g, requires_grad=True)
 for k in range(1):
     # forward pass
     xenc = F.one_hot(xs, num_classes=27).float() # input to network: one-hot encoding
-    print(xenc)
     logits = xenc @ w # predict log counts
 
     # softmax activation function:
