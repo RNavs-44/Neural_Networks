@@ -9,10 +9,10 @@ xs = [
     ]
 ys = [1.0, -1.0, -1.0, 1.0] # predicted targets
 
-for k in range(100):
+for k in range(10):
     # forward pass
     ypred = [n(x) for x in xs]
-    loss = sum([(ygt - yout)**2 for ygt, yout in zip(ys, ypred)])
+    loss = sum([(ygt - yout)**2 for ygt, yout in zip(ys, ypred)]) # mean squared error loss
 
     # backward pass
     for p in n.parameters():

@@ -9,7 +9,6 @@ class Module: # parent class to mirror nn.module class in PyTorch
     def parameters(self):
         return []
 
-
 class Neuron(Module):
     def __init__(self, n_in, lin=False):
         self.w = [Value(random.uniform(-1, 1)) for _ in range(n_in)]
@@ -23,6 +22,9 @@ class Neuron(Module):
     def parameters(self):
         return self.w + [self.b]
     
+    def __repr__(self):
+        return f"{'tanh' if not self.lin else 'Linear'} Neuron({len(self.w)})"
+    
 class Layer(Module):
     def __init__(self, n_in, n_out):
         self.neurons = [Neuron(n_in) for _ in range(n_out)]
@@ -33,6 +35,9 @@ class Layer(Module):
     
     def parameters(self):
         return [p for neuron in self.neurons for p in neuron.parameters()]
+    
+    def __repr__(self):
+        return f"Layer of [{', '.join(str(n) for n in self.neurons)}]"
 
 
 class MLP(Module): # Multi Layer Perceptron
@@ -47,4 +52,7 @@ class MLP(Module): # Multi Layer Perceptron
 
     def parameters(self):
         return [p for layer in self.layers for p in layer.parameters()]
+    
+    def __repr__(self):
+        return f"MLP of {', '.join(str(layer) for layer in self.layers)}"
 
