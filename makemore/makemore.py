@@ -25,7 +25,8 @@ N = torch.zeros((27, 27), dtype=torch.int32)
 # reverse stoi
 itos = {i:s for s,i in stoi.items()} 
 
-for w in words[:1000]:
+#for w in words
+for w in words[:10]:
     chs = ['.'] + list(w) + ['.']
     for ch1, ch2 in zip(chs, chs[1:]):
         ix1 = stoi[ch1]
@@ -42,12 +43,20 @@ for w in words[:1000]:
 #        plt.text(j, i, N[i, j].item(), ha="center", va="top", color="gray")
 #    plt.axis('off');
         
-# normalise counts and create probability distribution
-p = N[0].float()
-p = p / p.sum()
 
 # returns generator object which produces pseudo random numbers
 g = torch.Generator().manual_seed(2147483647)
-# draws samples from probability distribution
-ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
-print(itos[ix])
+
+for i in range(20):
+    out = []
+    ix = 0
+    while True:
+        # p = N[ix].float()
+        # p = p / p.sum()
+        p = torch.ones(27) / 27.0
+        # draws samples from probability distribution
+        ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
+        out.append(itos[ix])
+        if ix == 0:
+            break
+    print(''.join(out))
