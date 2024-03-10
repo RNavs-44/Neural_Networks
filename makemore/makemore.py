@@ -33,7 +33,9 @@ for w in words:
 # returns generator object which produces pseudo random numbers
 g = torch.Generator().manual_seed(2147483647)
 
-P = N.float()
+# add 1 for model smoothing, increasing count smooths model
+count = 1
+P = (N+count).float()
 P /= P.sum(1, keepdim=True)
 
 for i in range(20):
