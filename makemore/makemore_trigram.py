@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-words = open('makemore/names.txt', 'r').read().splitlines()
+words = open('makemore/words_alpha.txt', 'r').read().splitlines()
 
 # counting trigrams in python dictionary
 #t = {}
@@ -102,7 +102,7 @@ print('number of examples: ', num)
 w = torch.randn((27**2, 27), generator=g, requires_grad=True)
 
 # # gradient descent
-for k in range(100):
+for k in range(1):
     # forward pass
     xenc = F.one_hot(xs, num_classes=27**2).float() # input to network: one-hot encoding
     logits = xenc @ w # predict log counts
