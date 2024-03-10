@@ -41,7 +41,7 @@ P = (N+count).float()
 P /= P.sum(1, keepdim=True)
 
 # draw samples 
-for i in range(20):
+for i in range(100):
     out = []
     ix = 0
     while True:
@@ -83,42 +83,42 @@ print(f"{nll=}")
 print(f"{nll/n}")
 
 # training a neural network
-# create training set of bigrams
-#xs, ys = [], []
+# create training set of trigrams
+xs, ys = [], []
 
-# for w in words:
-#     chs = ['.'] + list(w) + ['.']
-#     for ch1, ch2 in zip(chs, chs[1:]):
-#         ix1 = stoi[ch1]
-#         ix2 = stoi[ch2]
-#         xs.append(ix1)
-#         ys.append(ix2)
-# xs = torch.tensor(xs)
-# ys = torch.tensor(ys)
-# num = xs.nelement()
-# print('number of examples: ', num)
+for w in words:
+    chs = ['.'] + ['.'] + list(w) + ['.']
+    for ch1, ch2, ch3 in zip(chs, chs[1:], chs[2:]):
+        ix1 = stoi_tri[ch1 + ch2]
+        ix2 = stoi[ch3]
+        xs.append(ix1)
+        ys.append(ix2)
+xs = torch.tensor(xs)
+ys = torch.tensor(ys)
+num = xs.nelement()
+print('number of examples: ', num)
 
-# # randomly initialise 27 neurons' weights, each neuron receives 27 inputs
-# w = torch.randn((27, 27), generator=g, requires_grad=True)
+# # randomly initialise 27 neurons' weights, each neuron receives 27**2 inputs
+w = torch.randn((27**2, 27), generator=g, requires_grad=True)
 
 # # gradient descent
-# for k in range(1):
-#     # forward pass
-#     xenc = F.one_hot(xs, num_classes=27).float() # input to network: one-hot encoding
-#     logits = xenc @ w # predict log counts
+for k in range(100):
+    # forward pass
+    xenc = F.one_hot(xs, num_classes=27**2).float() # input to network: one-hot encoding
+    logits = xenc @ w # predict log counts
 
-#     # softmax activation function:
-#     # way of taking outputs of neural net layer and output probabilities
-#     counts = logits.exp() # count equivalent to N
-#     probs = counts / counts.sum(1, keepdims=True) # output of neural nets, probabilbities for next character
+    # softmax activation function:
+    # way of taking outputs of neural net layer and output probabilities
+    counts = logits.exp() # count equivalent to N
+    probs = counts / counts.sum(1, keepdims=True) # output of neural nets, probabilbities for next character
 
-#     # loss function
-#     loss = -probs[torch.arange(num), ys].log().mean() + 0.01*(w**2).mean()
-#     print(loss.item())
+    # loss function
+    loss = -probs[torch.arange(num), ys].log().mean() + 0.01*(w**2).mean()
+    #print(loss.item())
 
-#     # backward pass
-#     w.grad = None # zero gradient
-#     loss.backward()
+    # backward pass
+    w.grad = None # zero gradient
+    loss.backward()
 
-#     # update
-#     w.data += -50 * w.grad
+    # update
+    w.data += -100 * w.grad
