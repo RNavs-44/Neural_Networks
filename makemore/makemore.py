@@ -86,15 +86,18 @@ for w in words:
 xs = torch.tensor(xs)
 ys = torch.tensor(ys)
 num = xs.nelement()
+print(xs)
+print(ys)
 print('number of examples: ', num)
 
 # randomly initialise 27 neurons' weights, each neuron receives 27 inputs
 w = torch.randn((27, 27), generator=g, requires_grad=True)
 
 # gradient descent
-for k in range(100):
+for k in range(1):
     # forward pass
     xenc = F.one_hot(xs, num_classes=27).float() # input to network: one-hot encoding
+    print(xenc)
     logits = xenc @ w # predict log counts
 
     # softmax activation function:
@@ -103,7 +106,7 @@ for k in range(100):
     probs = counts / counts.sum(1, keepdims=True) # output of neural nets, probabilbities for next character
 
     # loss function
-    loss = -probs[torch.arange(num), ys].log().mean()
+    loss = -probs[torch.arange(num), ys].log().mean() + 0.01*(w**2).mean()
     print(loss.item())
 
     # backward pass
