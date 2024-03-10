@@ -15,12 +15,12 @@ b = {}
 
 # counting bigrams using PyTorch tensors
 chars = sorted(list(set(''.join(words)))) # list of all characters
-stoi = {s:i for i,s in enumerate(chars)} # a:0, b:1, ...
-stoi['<S>'] = 26
-stoi['<E>'] = 27
+stoi = {s:i+1 for i,s in enumerate(chars)} # a:1, b:2, ...
+stoi['.'] = 0
+
 
 # returns tensor filled with scalar value 0
-N = torch.zeros((28, 28), dtype=torch.int32)
+N = torch.zeros((27, 27), dtype=torch.int32)
 
 # reverse stoi
 itos = {i:s for s,i in stoi.items()} 
