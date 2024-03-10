@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 words = open('makemore/names.txt', 'r').read().splitlines()
 
@@ -69,3 +70,37 @@ nll = -log_likelihood
 print(f"{nll=}")
 # we want to minimise average negative log likelihood
 print(f"{nll/n}")
+
+# training a neural network
+# create training set of bigrams
+
+xs, ys = [], []
+
+for w in words[:1]:
+    chs = ['.'] + list(w) + ['.']
+    for ch1, ch2 in zip(chs, chs[1:]):
+        ix1 = stoi(ch1)
+        ix2 = stoi(ch2)
+        xs.append(ix1)
+        ys.append(ix2)
+xs = torch.tensor(xs)
+ys = torch.tensor(ys)
+
+
+
+# randomly initialise 27 neurons' weights, each neuron receives 27 inputs
+w = torch.randn((27, 27), generator=g)
+
+# forward pass
+xenc = F.one_hot(xs, num_classes=27).float() # input to network: one-hot encoding
+logits = (xenc @ w) # predict log counts
+
+# softmax activation function:
+# way of taking outputs of neural net layer and output probabilities
+counts = logits.exp() # count equivalent to N
+probs = counts / counts.sum(1, keepdims=True) # output of neural nets, probabilbities for next character
+
+# loss function
+loss = -probs[torch.arrange(5), ys].log().mean()
+
+# back pass
