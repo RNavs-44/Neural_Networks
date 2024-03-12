@@ -39,10 +39,24 @@ parameters = [c, w1, b1, w2, b2]
 # number of parameters in total
 print(sum(p.nelement() for p in parameters))
 
-emb = c[x] # (53, 3, 2)
-h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
-logits = h @ w2 + b2 # (53, 27)
-# counts = logits.exp()
-# prob = counts / counts.sum(1, keepdim=True)
-# loss = -prob[torch.arange(53), y].log().mean()
-F.cross_entropy(logits, y)
+for p in parameters:
+    p.requires_grad = True
+
+for _ in range(1000):
+    # forward pass
+    emb = c[x] # (53, 3, 2)
+    h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
+    logits = h @ w2 + b2 # (53, 27)
+    loss = F.cross_entropy(logits, y)
+    # print(loss.item())
+
+    # backward pass
+    for p in parameters:
+        p.grad = None
+    loss.backward()
+
+    # update
+    for p in parameters:
+        p.data += -0.1 * p.grad
+
+print(loss.item())
