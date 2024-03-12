@@ -33,4 +33,6 @@ emb = c[x]
 w1 = torch.randn((6, 100))
 b1 = torch.randn(100)
 # transform 32 x 3 x 2 into 32 x 6
-torch.cat(torch.unbind(emb, 1), 1)
+# -1 makes pytorch infer value
+h = torch.tanh(emb.view(-1, 6) @ w1 + b1)
+print(h.shape)
