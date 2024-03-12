@@ -42,7 +42,13 @@ print(sum(p.nelement() for p in parameters))
 for p in parameters:
     p.requires_grad = True
 
-for _ in range(1000):
+lre = torch.linspace(-3, 0, 1000)
+lrs = 10 ** lre
+
+lri = []
+lossi = []
+
+for i in range(1000):
     # minibatch construction
     ix = torch.randint(0, x.shape[0], (32,))
 
@@ -59,8 +65,13 @@ for _ in range(1000):
     loss.backward()
 
     # update
+    lr = lrs[i]
     for p in parameters:
-        p.data += -0.1 * p.grad
+        p.data += lr * p.grad
+
+    # track stats
+    lri.append(lre[i])
+    lossi.append(loss.item())
 
 print(loss.item())
 
