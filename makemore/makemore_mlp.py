@@ -43,11 +43,14 @@ for p in parameters:
     p.requires_grad = True
 
 for _ in range(10):
+    # minibatch construction
+    ix = torch.randint(0, x.shape[0], (32,))
+
     # forward pass
-    emb = c[x] # (53, 3, 2)
+    emb = c[x[ix]] # (53, 3, 2)
     h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
     logits = h @ w2 + b2 # (53, 27)
-    loss = F.cross_entropy(logits, y)
+    loss = F.cross_entropy(logits, y[ix])
     print(loss.item())
 
     # backward pass
