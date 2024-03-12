@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 # read in all the words
 words = open("makemore/names.txt", "r").read().splitlines()
@@ -26,3 +27,6 @@ for w in words[:8]:
 
 x = torch.tensor(x)
 y = torch.tensor(y)
+
+c = torch.randn((27, 2))
+print(F.one_hot(torch.tensor(5), num_classes=27).float() @ c)
