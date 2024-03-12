@@ -28,19 +28,20 @@ for w in words[:8]:
 x = torch.tensor(x)
 y = torch.tensor(y)
 
-c = torch.randn((27, 2))
-emb = c[x]
+g = torch.Generator().manual_seed(214783647) # for reproducibility
+c = torch.randn((27, 2), generator=g)
 w1 = torch.randn((6, 100))
 b1 = torch.randn(100)
-# transform 32 x 3 x 2 into 32 x 6
-# -1 makes pytorch infer value
-h = torch.tanh(emb.view(-1, 6) @ w1 + b1)
 w2 = torch.randn((100, 27))
 b2 = torch.randn(27)
-logits = h @ w2 + b2
+parameters = [c, w1, b1, w2, b2]
+
+# number of parameters in total
+print(sum(p.nelement() for p in parameters))
+
+emb = c[x] # (53, 3, 2)
+h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
+logits = h @ w2 + b2 # (53, 27)
 counts = logits.exp()
-prob = counts / counts.sum(1, keepdims=True)
-# gives current probabilities assigned by this neural network to correct character in seq
+prob = counts / counts.sum(1, keepdim=True)
 loss = -prob[torch.arange(53), y].log().mean()
-#prob[torch.arange]
-#loss = -probs[torch.arange(y)].log().mean() + 0.01 * (w**2).mean()
