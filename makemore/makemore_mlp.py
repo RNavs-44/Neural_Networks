@@ -13,8 +13,9 @@ itos = {i: s for s, i in stoi.items()}
 
 
 # build the dataset
+block_size = 3 # context length: how many characters we take to predict next
+
 def build_dataset(words):
-    block_size = 3 # context length: how many characters we take to predict next
     x, y = [], []
     for w in words:
         #print(w)
@@ -31,6 +32,8 @@ def build_dataset(words):
 
     return x, y
 
+# training split, dev / validation split, test split
+# 80%, 10%, 10%
 random.seed(42)
 random.shuffle(words)
 n1 = int(0.8*len(words))
@@ -61,7 +64,7 @@ lri = []
 lossi = []
 stepi = []
 
-for i in range(20000):
+for i in range(200000):
     # minibatch construction
     ix = torch.randint(0, xtr.shape[0], (32,))
 
@@ -90,12 +93,33 @@ for i in range(20000):
 
 print(loss.item())
 
-# evaluate loss on entire data set
+# validation loss
 emb = c[xdev] # (53, 3, 2)
 h = torch.tanh(emb.view(-1, 30) @ w1 + b1) # (53, 100)
 logits = h @ w2 + b2 # (53, 27)
 loss = F.cross_entropy(logits, ydev)
 print(loss.item())
 
-# training split, dev / validation split, test split
-# 80%, 10%, 10%
+# test loss
+emb = c[xts] # (53, 3, 2)
+h = torch.tanh(emb.view(-1, 30) @ w1 + b1) # (53, 100)
+logits = h @ w2 + b2 # (53, 27)
+loss = F.cross_entropy(logits, yts)
+print(loss.item())
+
+# sample from model
+g = torch.Generator().manual_seed(214783647+10)
+for _ in range(20):
+    out = []
+    context = [0] * block_size
+    while True:
+        emb = c[torch.tensor([context])]
+        h = torch.tanh(emb.view(1, -1) @ w1 + b1)
+        logits = h @ w2 + b2
+        probs = F.softmax(logits, dim=1)
+        ix = torch.multinomial(probs, num_samples=1, generator=g).item()
+        context = context[1:] + [ix]
+        out.append(ix)
+        if ix == 0:
+            break
+    print(''.join(itos[i] for i in out))
