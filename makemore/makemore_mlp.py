@@ -29,4 +29,9 @@ x = torch.tensor(x)
 y = torch.tensor(y)
 
 c = torch.randn((27, 2))
-print(F.one_hot(torch.tensor(5), num_classes=27).float() @ c)
+emb = c[x]
+w1 = torch.randn((6, 100))
+b1 = torch.randn(100)
+# emb @ w1 + b1 not able to 
+# split 32 x 3 x 2 into 32 x 6
+torch.cat([emb[:, 0, :], emb[:, 1, :], emb[:, 2, :]], 1).shape
