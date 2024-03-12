@@ -15,7 +15,7 @@ itos = {i: s for s, i in stoi.items()}
 block_size = 3 # context length: how many characters we take to predict next
 x, y = [], []
 
-for w in words[:8]:
+for w in words:
     #print(w)
     context = [0] * block_size
     for ch in w + '.':
@@ -42,13 +42,13 @@ print(sum(p.nelement() for p in parameters))
 for p in parameters:
     p.requires_grad = True
 
-for _ in range(1000):
+for _ in range(10):
     # forward pass
     emb = c[x] # (53, 3, 2)
     h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
     logits = h @ w2 + b2 # (53, 27)
     loss = F.cross_entropy(logits, y)
-    # print(loss.item())
+    print(loss.item())
 
     # backward pass
     for p in parameters:
