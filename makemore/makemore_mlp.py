@@ -42,7 +42,7 @@ print(sum(p.nelement() for p in parameters))
 for p in parameters:
     p.requires_grad = True
 
-for _ in range(10):
+for _ in range(1000):
     # minibatch construction
     ix = torch.randint(0, x.shape[0], (32,))
 
@@ -51,7 +51,7 @@ for _ in range(10):
     h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
     logits = h @ w2 + b2 # (53, 27)
     loss = F.cross_entropy(logits, y[ix])
-    print(loss.item())
+    # print(loss.item())
 
     # backward pass
     for p in parameters:
@@ -62,4 +62,11 @@ for _ in range(10):
     for p in parameters:
         p.data += -0.1 * p.grad
 
+print(loss.item())
+
+# evaluate loss on entire data set
+emb = c[x[ix]] # (53, 3, 2)
+h = torch.tanh(emb.view(-1, 6) @ w1 + b1) # (53, 100)
+logits = h @ w2 + b2 # (53, 27)
+loss = F.cross_entropy(logits, y[ix])
 print(loss.item())
