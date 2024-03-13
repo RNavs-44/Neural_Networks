@@ -10,7 +10,7 @@ chars = sorted(list(set(''.join(words))))
 stoi = {s: i + 1 for i, s in enumerate(chars)}
 stoi['.'] = 0
 itos = {i: s for s, i in stoi.items()}
-
+vocab_size = len(itos)
 
 # build the dataset
 block_size = 3 # context length: how many characters we take to predict next
@@ -43,11 +43,14 @@ xtr, ytr = build_dataset(words[:n1])
 xdev, ydev = build_dataset(words[n1:n2])
 xts, yts = build_dataset(words[n2:])
 
+n_embd = 10 # dimensionality of character embedding vectors
+n_hidden = 200 # no. of neurons in hidden layer of MLP
+
 g = torch.Generator().manual_seed(214783647) # for reproducibility
-c = torch.randn((27, 10), generator=g)
-w1 = torch.randn((30, 200))
-b1 = torch.randn(200)
-w2 = torch.randn((200, 27))
+c = torch.randn((27, n_embd), generator=g)
+w1 = torch.randn((n_embd * block_size, n_hidden))
+b1 = torch.randn(n_hidden)
+w2 = torch.randn((n_hidden, 27))
 b2 = torch.randn(27)
 parameters = [c, w1, b1, w2, b2]
 
@@ -64,15 +67,22 @@ lri = []
 lossi = []
 stepi = []
 
-for i in range(200000):
+max_steps = 200000
+batch_size = 32
+lossi = []
+
+for i in range(max_steps):
     # minibatch construction
-    ix = torch.randint(0, xtr.shape[0], (32,))
+    ix = torch.randint(0, xtr.shape[0], (batch_size,))
+    xb, yb = xtr[ix], ytr[ix]
 
     # forward pass
-    emb = c[xtr[ix]] # (32, 3, 2)
-    h = torch.tanh(emb.view(-1, 30) @ w1 + b1) # (32, 100)
-    logits = h @ w2 + b2 # (32, 27)
-    loss = F.cross_entropy(logits, ytr[ix])
+    emb = c[xb] # embed characters into vectors
+    embcat = emb.view(emb.shape[0], -1) # concatenate vectors
+    hpreact = embcat @ w1 + b1 # hidden layer pre-activation
+    h = torch.tanh(hpreact) # hidden layer
+    logits = h @ w2 + b2 # output layer
+    loss = F.cross_entropy(logits, yb) # loss function
     # print(loss.item())
 
     # backward pass
@@ -81,45 +91,56 @@ for i in range(200000):
     loss.backward()
 
     # update
-    # lr = lrs[i]
-    lr = 0.1 if i < 100000 else 0.01
+    lr = 0.1 if i < 100000 else 0.01 # step learning rate decay
     for p in parameters:
         p.data += -lr * p.grad
 
     # track stats
-    # lri.append(lre[i])
+    if i % 10000 == 0: # print every once in a while
+        print(f'{i:7d} / {max_steps:7d}: {loss.item():.4f}')
     lossi.append(loss.log10().item())
-    stepi.append(i)
 
 print(loss.item())
 
-# validation loss
-emb = c[xdev] # (53, 3, 2)
-h = torch.tanh(emb.view(-1, 30) @ w1 + b1) # (53, 100)
-logits = h @ w2 + b2 # (53, 27)
-loss = F.cross_entropy(logits, ydev)
-print(loss.item())
+@torch.no_grad() # this decorator disables gradient tracking
+def split_loss(split):
+    x, y = {
+        'train': (xtr, ytr),
+        'val': (xdev, ydev),
+        'test': (xts, yts)
+    }[split]
+    emb = c[x]
+    embcat = emb.view(emb.shape[0], -1)
+    hpreact = embcat @ w1 + b1
+    h = torch.tan(hpreact)
+    logits = h @ w2 + b2
+    loss = F.cross_entropy(logits, y)
+    print(split, loss.item())
 
-# test loss
-emb = c[xts] # (53, 3, 2)
-h = torch.tanh(emb.view(-1, 30) @ w1 + b1) # (53, 100)
-logits = h @ w2 + b2 # (53, 27)
-loss = F.cross_entropy(logits, yts)
-print(loss.item())
+split_loss('train')
+split_loss('val')
 
 # sample from model
 g = torch.Generator().manual_seed(214783647+10)
+
 for _ in range(20):
     out = []
     context = [0] * block_size
     while True:
+        # forward pass neural net
         emb = c[torch.tensor([context])]
-        h = torch.tanh(emb.view(1, -1) @ w1 + b1)
+        embcat = emb.view(1, -1)
+        hpreact = embcat @ w1 + b1
+        h = torch.tanh(hpreact)
         logits = h @ w2 + b2
         probs = F.softmax(logits, dim=1)
+        # sample from distribution
         ix = torch.multinomial(probs, num_samples=1, generator=g).item()
+        # shift context window and track samples
         context = context[1:] + [ix]
         out.append(ix)
+        # if we sample special '.' token, break
         if ix == 0:
             break
-    print(''.join(itos[i] for i in out))
+
+    print(''.join(itos[i] for i in out)) # decode and print generated word
