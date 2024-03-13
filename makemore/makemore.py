@@ -118,3 +118,24 @@ for k in range(1):
 
     # update
     w.data += -50 * w.grad
+
+
+nlls = torch.zeros(5)
+for i in range(5):
+    # i-th bigram
+    x = xs[i].item() # input character index
+    y = ys[i].item() # output character index
+    print('----------------')
+    print(f'bigram example {i+1}: {itos[x]}{itos[y]} (indexes {x}, {y})')
+    print('input to neural net:', x)
+    print('output probabilities from neural net:', probs[i])
+    print('label (actual next character):', y)
+    p = probs[i, y]
+    print('probability assigned by net to correct character:', p.item())
+    logp = torch.log(p)
+    print('log likelihood:', logp.item())
+    nll = -logp
+    print('negative log likelihood', nll.item())
+    nlls[i] = nll
+print('================')
+print('average negative log likelihood, i.e. loss =', nlls.mean().item())
